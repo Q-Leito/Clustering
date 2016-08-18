@@ -1,0 +1,4 @@
+.grid-pane {
+    -fx-vgap: 15;
+    -fx-hgap: 15;
+}
