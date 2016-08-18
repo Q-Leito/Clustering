@@ -29,6 +29,11 @@ public class MainController implements Initializable {
     public Label mClusterThreeLabel;
     public Label mClusterFourLabel;
     public Label mClusterFiveLabel;
+    public Label mClusterOneOffersLabel;
+    public Label mClusterTwoOffersLabel;
+    public Label mClusterThreeOffersLabel;
+    public Label mClusterFourOffersLabel;
+    public Label mClusterFiveOffersLabel;
     public ChoiceBox<Integer> mNumberOfClustersBox;
     public ChoiceBox<Integer> mNumberOfIterationsBox;
     public Button mSubmitButton;
@@ -51,11 +56,7 @@ public class MainController implements Initializable {
     public void submitButton() {
         Integer selectedNumberOfClusters = mNumberOfClustersBox.getSelectionModel().getSelectedItem();
         Integer selectedNumberOfIterations = mNumberOfIterationsBox.getSelectionModel().getSelectedItem();
-        mClusterOneLabel.setText("");
-        mClusterTwoLabel.setText("");
-        mClusterThreeLabel.setText("");
-        mClusterFourLabel.setText("");
-        mClusterFiveLabel.setText("");
+        clearText();
 
         // Define file to read, read file and store data
         List<Point> points = null;
@@ -72,95 +73,117 @@ public class MainController implements Initializable {
         double previousSSE;
         double sse = 0;
         double mainSSE = Double.POSITIVE_INFINITY;
-        Cluster mainClusters[] = new Cluster[selectedNumberOfClusters];
 
-        // LOOP NUMBER OF ITERATION
-        for (int i = 0; i < selectedNumberOfIterations; i++) {
-            clusters = clusterCreator.initClusters(selectedNumberOfClusters, points);
-            for (int n = 0; n < selectedNumberOfIterations; n++) {
-                previousSSE = sse;
+        if (selectedNumberOfClusters != null && selectedNumberOfIterations != null) {
+            Cluster mainClusters[] = new Cluster[selectedNumberOfClusters];
 
-                for (Cluster cluster : clusters) {
-                    cluster.mPoints.clear();
+            // LOOP NUMBER OF ITERATION
+            for (int i = 0; i < selectedNumberOfIterations; i++) {
+                clusters = clusterCreator.initClusters(selectedNumberOfClusters, points);
+                for (int n = 0; n < selectedNumberOfIterations; n++) {
+                    previousSSE = sse;
+
+                    for (Cluster cluster : clusters) {
+                        cluster.mPoints.clear();
+                    }
+
+                    // Assign to closest centroid
+                    // Make method for
+                    if (points != null) {
+                        for (Point point : points) {
+                            double BIG_NUMBER = Double.POSITIVE_INFINITY;
+                            Cluster c = clusters[0];
+                            int j = 0;
+
+                            do {
+                                double delta = clusters[j].compare(new EuclidianDistance(), point);
+                                if (delta < BIG_NUMBER) {
+                                    BIG_NUMBER = delta;
+                                    c = clusters[j];
+                                }
+                                j++;
+                            } while (j < clusters.length);
+                            c.getPoints().add(point);
+                        }
+                    }
+
+                    // Update centroids (means/ average)
+                    for (Cluster cluster : clusters) {
+                        cluster.setPosition(new Point(cluster.getMean()));
+                    }
+
+                    sse = clusterCreator.getSSE(clusters);
+
+                    if (sse == previousSSE) {
+                        if (mainSSE > sse) {
+                            mainSSE = sse;
+                            mainClusters = clusters;
+                        }
+                        break;
+                    }
                 }
+            }
 
-                // Assign to closest centroid
-                // Make method for
-                if (points != null) {
-                    for (Point point : points) {
-                        double BIG_NUMBER = Double.POSITIVE_INFINITY;
-                        Cluster c = clusters[0];
-                        int j = 0;
+            mSSELabel.setText("SSE: " + mainSSE);
+            System.out.println("MAIN SSE: " + mainSSE);
 
-                        do {
-                            double delta = clusters[j].compare(new EuclidianDistance(), point);
-                            if (delta < BIG_NUMBER) {
-                                BIG_NUMBER = delta;
-                                c = clusters[j];
-                            }
-                            j++;
-                        } while (j < clusters.length);
-                        c.getPoints().add(point);
+            int clusterNumber = 0;
+            for (Cluster cluster : mainClusters) {
+                int[] count = new int[cluster.getPosition().getProperties().length];
+                for (Point p : cluster.getPoints()) {
+                    for (int i = 0; i < count.length; i++) {
+                        if (p.getProperties()[i] > 0) {
+                            count[i]++;
+                        }
                     }
                 }
 
-                // Update centroids (means/ average)
-                for (Cluster cluster : clusters) {
-                    cluster.setPosition(new Point(cluster.getMean()));
+                switch (clusterNumber) {
+                    case 0:
+                        printAmountOfCustomersAndOffersBoughtInCluster(mClusterOneLabel, mClusterOneOffersLabel, cluster, count);
+                        break;
+                    case 1:
+                        printAmountOfCustomersAndOffersBoughtInCluster(mClusterTwoLabel, mClusterTwoOffersLabel, cluster, count);
+                        break;
+                    case 2:
+                        printAmountOfCustomersAndOffersBoughtInCluster(mClusterThreeLabel, mClusterThreeOffersLabel, cluster, count);
+                        break;
+                    case 3:
+                        printAmountOfCustomersAndOffersBoughtInCluster(mClusterFourLabel, mClusterFourOffersLabel, cluster, count);
+                        break;
+                    case 4:
+                        printAmountOfCustomersAndOffersBoughtInCluster(mClusterFiveLabel, mClusterFiveOffersLabel, cluster, count);
+                        break;
                 }
-
-                sse = clusterCreator.getSSE(clusters);
-
-                if (sse == previousSSE) {
-                    if (mainSSE > sse) {
-                        mainSSE = sse;
-                        mainClusters = clusters;
-                    }
-                    break;
-                }
+                System.out.println();
+                clusterNumber++;
             }
         }
+    }
 
-        mSSELabel.setText("SSE: " + mainSSE);
-        System.out.println("MAIN SSE: " + mainSSE);
+    private void clearText() {
+        mClusterOneLabel.setText("");
+        mClusterTwoLabel.setText("");
+        mClusterThreeLabel.setText("");
+        mClusterFourLabel.setText("");
+        mClusterFiveLabel.setText("");
 
-        int clusterNumber = 0;
-        for (Cluster cluster : mainClusters) {
-            int[] count = new int[cluster.getPosition().getProperties().length];
-            for (Point p : cluster.getPoints()) {
-                for (int i = 0; i < count.length; i++) {
-                    if (p.getProperties()[i] > 0) {
-                        count[i]++;
-                    }
-                }
+        mClusterOneOffersLabel.setText("");
+        mClusterTwoOffersLabel.setText("");
+        mClusterThreeOffersLabel.setText("");
+        mClusterFourOffersLabel.setText("");
+        mClusterFiveOffersLabel.setText("");
+    }
+
+    private void printAmountOfCustomersAndOffersBoughtInCluster(Label clusterLabel, Label clusterOffersLabel,
+                                                                Cluster cluster, int[] count) {
+        clusterLabel.setText("Customers: " + cluster.getPoints().size());
+        String offers = "";
+        for (int i = 0; i < count.length; i++) {
+            if (count[i] > 3) {
+                offers += "Offer: " + (i + 1) + " was bought " + count[i] + " times \n";
+                clusterOffersLabel.setText(offers);
             }
-
-            switch (clusterNumber) {
-                case 0:
-                    mClusterOneLabel.setText("Customers: " + cluster.getPoints().size());
-                    break;
-                case 1:
-                    mClusterTwoLabel.setText("Customers: " + cluster.getPoints().size());
-                    break;
-                case 2:
-                    mClusterThreeLabel.setText("Customers: " + cluster.getPoints().size());
-                    break;
-                case 3:
-                    mClusterFourLabel.setText("Customers: " + cluster.getPoints().size());
-                    break;
-                case 4:
-                    mClusterFiveLabel.setText("Customers: " + cluster.getPoints().size());
-                    break;
-            }
-
-            System.out.println("Customers: " + cluster.getPoints().size());
-            for (int i = 0; i < count.length; i++) {
-                if (count[i] > 3) {
-                    System.out.println("Offer: " + (i + 1) + " was bought " + count[i] + " times");
-                }
-            }
-            System.out.println();
-            clusterNumber++;
         }
     }
 }
