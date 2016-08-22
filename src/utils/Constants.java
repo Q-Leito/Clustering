@@ -1,8 +1,5 @@
 package utils;
 
-/**
- * Created by Quincy on 7/28/2016.
- */
 public class Constants {
     public static final int APP_WIDTH = 1460;
     public static final int APP_HEIGHT = 920;

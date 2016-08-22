@@ -38,16 +38,26 @@ public class MainController implements Initializable {
     public ChoiceBox<Integer> mNumberOfIterationsBox;
     public Button mSubmitButton;
 
+    private List<Point> mPoints = null;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Define file to read, read file and store data
+        try {
+            mPoints = new PointParser("WineData.csv").parsePoints();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.exit(0);
+        }
+
         ObservableList<Integer> numberOfClusters = FXCollections.observableArrayList();
-        for (int i = 1; i < 6; i++) {
+        for (int i = 1; i < 11; i++) {
             numberOfClusters.add(i);
             mNumberOfClustersBox.setItems(numberOfClusters);
         }
 
         ObservableList<Integer> numberOfIterations = FXCollections.observableArrayList();
-        for (int i = 10; i < 101; i += 10) {
+        for (int i = 100; i <= 1000; i += 100) {
             numberOfIterations.add(i);
             mNumberOfIterationsBox.setItems(numberOfIterations);
         }
@@ -58,16 +68,8 @@ public class MainController implements Initializable {
         Integer selectedNumberOfIterations = mNumberOfIterationsBox.getSelectionModel().getSelectedItem();
         clearText();
 
-        // Define file to read, read file and store data
-        List<Point> points = null;
-        try {
-            points = new PointParser("WineData.csv").parsePoints();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
         // Randomly initialise K cluster centroids
-        ClusterCreator clusterCreator = new ClusterCreator(points);
+        ClusterCreator clusterCreator = new ClusterCreator();
         Cluster clusters[];
 
         double previousSSE;
@@ -79,18 +81,19 @@ public class MainController implements Initializable {
 
             // LOOP NUMBER OF ITERATION
             for (int i = 0; i < selectedNumberOfIterations; i++) {
-                clusters = clusterCreator.initClusters(selectedNumberOfClusters, points);
+                // Initialise clusters using random observation points
+                clusters = clusterCreator.initClusters(selectedNumberOfClusters, mPoints);
                 for (int n = 0; n < selectedNumberOfIterations; n++) {
                     previousSSE = sse;
 
+                    // Empty clusters at beginning of each iteration
                     for (Cluster cluster : clusters) {
                         cluster.mPoints.clear();
                     }
 
                     // Assign to closest centroid
-                    // Make method for
-                    if (points != null) {
-                        for (Point point : points) {
+                    if (mPoints != null) {
+                        for (Point point : mPoints) {
                             double BIG_NUMBER = Double.POSITIVE_INFINITY;
                             Cluster c = clusters[0];
                             int j = 0;
@@ -114,6 +117,7 @@ public class MainController implements Initializable {
 
                     sse = clusterCreator.getSSE(clusters);
 
+                    // Save cluster with lowest SSE
                     if (sse == previousSSE) {
                         if (mainSSE > sse) {
                             mainSSE = sse;
@@ -127,6 +131,8 @@ public class MainController implements Initializable {
             mSSELabel.setText("SSE: " + mainSSE);
             System.out.println("MAIN SSE: " + mainSSE);
 
+            // Iteration through best clusters (solutions)
+            // Save count of times that an offer was bought
             int clusterNumber = 0;
             for (Cluster cluster : mainClusters) {
                 int[] count = new int[cluster.getPosition().getProperties().length];
@@ -175,12 +181,20 @@ public class MainController implements Initializable {
         mClusterFiveOffersLabel.setText("");
     }
 
+    /**
+     * Print the amount of customers and offers bought (more than x times) in a cluster
+     *
+     * @param clusterLabel
+     * @param clusterOffersLabel
+     * @param cluster cluster object
+     * @param count array containing count of offers bought
+     */
     private void printAmountOfCustomersAndOffersBoughtInCluster(Label clusterLabel, Label clusterOffersLabel,
                                                                 Cluster cluster, int[] count) {
         clusterLabel.setText("Customers: " + cluster.getPoints().size());
         String offers = "";
         for (int i = 0; i < count.length; i++) {
-            if (count[i] > 3) {
+            if (count[i] > 3) { // Bought more than 3 times
                 offers += "Offer: " + (i + 1) + " was bought " + count[i] + " times \n";
                 clusterOffersLabel.setText(offers);
             }
