@@ -1,6 +1,19 @@
 package similarity;
 
 public class SquaredEuclideanDistance implements DistanceInterface {
+    /**
+     * getDistance
+     *
+     * Calculates the distance between two array using Squared Euclidean distance [GEEN WORTEL SUM].
+     * In this application used to sum of squared errors (SSE).
+     *
+     * Sommatie Loop:
+     *      (q[i] - p[i]) ^ 2
+     *
+     * @param lhs array of points
+     * @param rhs array of points
+     * @return sum double
+     */
     @Override
     public double getDistance(double[] lhs, double[] rhs) {
         double sum = 0;

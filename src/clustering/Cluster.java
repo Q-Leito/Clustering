@@ -29,7 +29,11 @@ public class Cluster {
     }
 
     /**
-     * Average position of observations in cluster
+     * Calculates the mean(average) of a cluster.
+     * Create a result array by iterating through all the points in the list, sum all the values.
+     * Iterate through the created result array and change value to the average.
+     *
+     * Average: total sum / amount of points
      *
      * @return result
      */
@@ -49,6 +53,12 @@ public class Cluster {
         return result;
     }
 
+    /**
+     * Calculates the Sum of Squared Errors.
+     * Measures how closely related are objects in a cluster.
+     *
+     * @return sum
+     */
     public double getSquaredErrors() {
         double sum = 0;
         for (Point point : mPoints) {
@@ -57,6 +67,15 @@ public class Cluster {
         return sum;
     }
 
+    /**
+     * Compare centroid(mPosition) of a cluster with a point(other).
+     * This compare method uses the DistanceInterface as a calculator.
+     * In this application the calculator can be Euclidean or SquaredEuclidean.
+     *
+     * @param calculator
+     * @param other
+     * @return double
+     */
     public double compare(DistanceInterface calculator, Point other) {
         return mPosition.compare(calculator, other);
     }

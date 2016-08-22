@@ -3,12 +3,15 @@ package clustering;
 import java.util.List;
 
 public class ClusterCreator {
-    private List<Point> mPoints;
 
-    public ClusterCreator(List<Point> points) {
-        mPoints = points;
-    }
-
+    /**
+     * Initialise clusters.
+     * Create amount(numberOfClusters) of clusters by randomly choose observation points from List<Point> points.
+     *
+     * @param numberOfClusters
+     * @param points list of points
+     * @return clusters
+     */
     public Cluster[] initClusters(int numberOfClusters, List<Point> points) {
         Cluster[] clusters = new Cluster[numberOfClusters];
 
@@ -20,19 +23,20 @@ public class ClusterCreator {
     }
 
     /**
-     * Get random point from points list
+     * Get random observation(point) from the points list
      *
      * @param points
-     * @return
+     * @return Point
      */
     private Point getRandomPoint(List<Point> points) {
         return points.get((int) (Math.random() * points.size()));
     }
 
     /**
-     * get SSE from all clusters
+     * Calculates the total Sum of Squared Errors
+     *
      * @param clusters
-     * @return
+     * @return double sum
      */
     public double getSSE(Cluster[] clusters) {
         double sum = 0;
